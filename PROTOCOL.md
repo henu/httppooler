@@ -29,7 +29,8 @@ Terms
 Layer 0: preamble
 -----------------
 
-Both sides send five bytes immediately after connecting, without waiting for the other:
+The initiator sends five bytes immediately after connecting, without waiting for the other side; the
+responder reads them first and sends its own with its handshake message, as layer 1 says:
 
     offset  size  value
     0       4     magic "HPOL" (0x48 0x50 0x4F 0x4C)
@@ -113,6 +114,10 @@ HELLO (0x01), client→server, the client's first message, exactly once
       service       str8    service name, the same string as in [provide "…"] and [consume "…"]
       max_concurrent u16    slots: jobs this upstream runs at the same time, >= 1
       priority      u16     when several providers have a free slot, the smallest number is chosen
+
+One provider per service per peer: a REQUEST names the service and nothing else, so a peer announcing the
+same service twice would be a job with two places to go and no way to say which. The server refuses such a
+HELLO and closes the connection.
 
 PING (0x02) and PONG (0x03), both directions, no fields.
 

@@ -16,8 +16,12 @@ Documents
 Building and testing
 --------------------
 
-    go build ./... && go test ./...
-    CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' ./cmd/httppooler    # release: static binary
+    go build -buildvcs=false ./... && go test ./...
+    CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags='-s -w' ./cmd/httppooler   # release: static
+
+-buildvcs=false because a Mercurial repository above this checkout makes Go's VCS stamping ambiguous and it
+refuses to link at all ("multiple VCS detected"). Nothing reads the stamp, and -trimpath already keeps local
+detail out of the binary.
 
 go.mod pins the Go version; the installed `go` command fetches that toolchain itself. The binary's only
 external dependency is golang.org/x/crypto. flynn/noise is a test-only dependency, the interop oracle.
@@ -26,8 +30,8 @@ Tests need no network and no Ollama: fake upstreams run in-process.
 Layout
 ------
 
-- cmd/httppooler: CLI. `genkey` prints 64 hex chars (the install script uses it); `run -conf <path>`,
-  default /etc/httppooler/httppooler.conf
+- cmd/httppooler: CLI. `genkey` prints 64 hex chars (the install script uses it); `run -conf <path> [-v]`,
+  conf defaults to /etc/httppooler/httppooler.conf
 - internal/noise: NNpsk0 handshake and transport; vector-tested; knows nothing about httppooler
 - internal/wire: record stream and message codec
 - internal/conf: conf parser

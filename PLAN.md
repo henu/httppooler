@@ -4,7 +4,7 @@ Plan
 Order of work; each step ends in a review.
 
 1. [x] Decisions, README.md, PROTOCOL.md.
-2. [ ] internal/noise: NNpsk0 handshake and transport. Vector tests from flynn/noise vectors.txt (vendored),
+2. [x] internal/noise: NNpsk0 handshake and transport. Vector tests from flynn/noise vectors.txt (vendored),
        interop test against flynn/noise in both roles.
 3. [ ] Everything else in one go: wire, conf, pool, peer, cmd, and an in-process integration test with a
        server, two clients and fake upstreams covering routing, FIFO, priority, slots, requeue on connection

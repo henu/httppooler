@@ -59,3 +59,6 @@ Running
 
 Logs go to the journal; SIGUSR1 logs peers, slots and queues. `CGO_ENABLED=0 go build ./cmd/httppooler`
 gives a static binary.
+
+`go test ./...` in the repository root runs every test. Nothing is started and no port is opened; only the
+first run needs the network, to fetch the Go toolchain go.mod pins and the test-only dependency.

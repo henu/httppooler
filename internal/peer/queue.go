@@ -5,7 +5,7 @@ package peer
 // The queue is unbounded on purpose. The read loop must never block: two peers that relay to each other
 // would otherwise be able to wedge, each one's reader waiting for a queue the other's writer is waiting
 // to fill. Version 0 has no per-job window, so what a job cannot pass on at once is held here, and
-// PLAN.md keeps flow control on the list of things a later version owes.
+// PROTOCOL.md says so, and flow control waits for a later version.
 
 import (
 	"context"

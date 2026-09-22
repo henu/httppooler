@@ -2,6 +2,8 @@ package conf
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -23,25 +25,49 @@ func good(t *testing.T, text string) *Conf {
 	return c
 }
 
-// TestInstalledTemplate is the file the install puts in place: a secret and nothing else. It parses,
-// it has no role, and the daemon idles on it.
+// TestInstalledTemplate is the file the install puts in place, read out of the install script itself so
+// that the two cannot drift: a template that stopped parsing would give every fresh install a daemon that
+// refuses its own conf. It parses, it has no role, and the daemon idles on it.
 func TestInstalledTemplate(t *testing.T) {
-	c := good(t, `
-[peer]
-#role = server               # or client
-#listen = 0.0.0.0:7420       # server only: where clients connect
-#server = example.com:7420   # client only: the server to dial
-secret = `+testSecret+`      # generated at install; every client uses the server's
-#name = homebox              # for logs; default hostname
-#queue_timeout = 10m         # server only: max wait for a free provider, then 503
-`)
+	c := good(t, installTemplate(t))
 
 	if c.Role != RoleNone {
 		t.Fatalf("role is %s, want none", c.Role)
 	}
+	if len(c.Secret) != SecretSize {
+		t.Fatalf("secret is %d bytes, want %d", len(c.Secret), SecretSize)
+	}
 	if len(c.Consume) != 0 || len(c.Provide) != 0 {
 		t.Fatal("the template has sections in it")
 	}
+
+	// Every key the template leaves commented is a key the daemon has a default for, and these are the
+	// defaults the README shows beside them.
+	if c.Listen != DefaultListen || c.QueueTimeout != DefaultQueueTimeout || c.Name == "" {
+		t.Fatalf("the template's defaults came out as %+v", c)
+	}
+}
+
+// installTemplate is the heredoc the install script writes the conf from, with a real secret in place of
+// the one genkey makes.
+func installTemplate(t *testing.T) string {
+	t.Helper()
+
+	script, err := os.ReadFile(filepath.Join("..", "..", "deploy", "install.sh"))
+	if err != nil {
+		t.Fatalf("reading the install script: %v", err)
+	}
+
+	_, rest, found := strings.Cut(string(script), "<<CONF\n")
+	if !found {
+		t.Fatal("the install script has no conf heredoc; has it been rewritten?")
+	}
+	template, _, found := strings.Cut(rest, "\nCONF\n")
+	if !found {
+		t.Fatal("the install script's conf heredoc does not end")
+	}
+
+	return strings.Replace(template, "$secret", testSecret, 1)
 }
 
 // TestDefaults is every key the README says has one, left out.

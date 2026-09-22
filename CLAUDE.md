@@ -1,4 +1,4 @@
-httppooler
+HttpPooler
 ==========
 
 Trusted peers pool their local HTTP services over an encrypted link; each request goes to the first free
@@ -11,7 +11,6 @@ Documents
 - PROTOCOL.md is authoritative for everything on the wire, byte by byte. Code follows it; when they differ,
   fix one and say which. Any layout change is a new version constant there and in code.
 - README.md is the operator's view: setup, conf template, behaviour. Keep it true to the code and brief.
-- PLAN.md is the order of work and what is done. Update it in the same turn a step finishes.
 
 Building and testing
 --------------------
@@ -32,12 +31,13 @@ Layout
 
 - cmd/httppooler: CLI. `genkey` prints 64 hex chars (the install script uses it); `run -conf <path> [-v]`,
   conf defaults to /etc/httppooler/httppooler.conf
-- internal/noise: NNpsk0 handshake and transport; vector-tested; knows nothing about httppooler
+- internal/noise: NNpsk0 handshake and transport; vector-tested; knows nothing about HttpPooler
 - internal/wire: record stream and message codec
 - internal/conf: conf parser
 - internal/pool: the server's queues and slots
 - internal/peer: connections, providers, consumers
-- deploy: systemd unit (Restart=always, ExecReload sends SIGHUP) and the install script
+- deploy: systemd unit (Restart=always, ExecReload sends SIGHUP) and install.sh, which puts it on a machine
+- build_release_package.sh: packs those two and the binary into the tarball they travel in
 
 Rules
 -----
@@ -65,3 +65,14 @@ Conventions
 - A function that checks several things is a sequence of guards, one `if … { return }` per thing under a
   comment naming it, never one chained expression.
 - gofmt, no dependencies beyond those named above.
+
+Later
+-----
+
+- Per-peer tokens for revocation.
+- `type = tcp` for connection-pinned services, honestly named.
+- Routing by a request label, if interchangeable providers ever stop being enough.
+- `httppooler status`, a subcommand rather than a second binary, printing peers, slots and queues. SIGUSR1
+  cannot back it: its output goes to the journal, and a command that prints nothing is no command. It wants
+  a local control socket under /run, with RuntimeDirectory in the unit.
+- Flow control, a per-job window. PROTOCOL.md says what version 0 does instead.

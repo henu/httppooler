@@ -1,0 +1,21 @@
+[Unit]
+Description=HttpPooler, pooling HTTP services between trusted peers
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/httppooler run -conf /etc/httppooler/httppooler.conf
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+User=httppooler
+Group=httppooler
+
+# The daemon reads one conf file, opens sockets and writes to the journal. It needs nothing else, so it
+# is given nothing else. A conf kept somewhere under a home directory would need ProtectHome dropped.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

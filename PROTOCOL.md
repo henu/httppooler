@@ -1,4 +1,4 @@
-httppooler wire protocol
+HttpPooler wire protocol
 ========================
 
 Version 0. This is everything a client and the server put on one TCP connection, from the first byte.
@@ -11,6 +11,10 @@ nothing is recovered.
 
 There are no size caps. The only bounds are structural (a u16 length is at most 65535) or inherited (a Noise
 message is at most 65535 bytes); bodies of any size travel as chunks.
+
+There is no per-job window either. A peer that takes a body in faster than it can pass it on holds the
+difference in memory: a provider's slots bound how many jobs run at once, and nothing bounds that. Flow
+control would be a new version.
 
 Terms
 -----
@@ -181,6 +185,8 @@ A job's message sequence
 
 - A consumer reads the whole request body before sending REQUEST, so the server can hand the job to another
   provider if one vanishes. A request without body is REQUEST, END.
+- A request that asks to become something else, a WebSocket or any other Upgrade, never becomes a job. The
+  consumer side answers it 501 where it arrives, since nothing here could carry a connection.
 - The server is the provider side toward a submitting client and the consumer side toward the chosen
   provider. It relays RESPONSE, BODY, END and FAIL from the provider to the submitter, and BODY, END and
   CANCEL the other way, renumbering the job for the second connection. Pool-level failures it answers itself

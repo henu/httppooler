@@ -47,7 +47,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, `httppooler pools HTTP services between trusted peers.
+	fmt.Fprintf(os.Stderr, `HttpPooler pools HTTP services between trusted peers.
 
   httppooler genkey              print a fresh shared secret
   httppooler run [-conf path]    run the daemon, default %s
